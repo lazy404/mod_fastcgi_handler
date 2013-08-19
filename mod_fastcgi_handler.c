@@ -2,12 +2,20 @@
 
 #include "fcgi_request.h"
 #include "fcgi_server.h"
+#include "http_log.h"
 
 static
 int fastcgi_handler(request_rec *r)
 {
 	if (strncmp(r->handler, "fcgi:", 5))
 		return DECLINED;
+
+        // check if the requested file exists, return 404 error if not.
+        if (r->finfo.filetype == 0) {
+                ap_log_rerror(APLOG_MARK, APLOG_ERR, 0, r,
+                        "File does not exist: %s", r->filename);
+                return HTTP_NOT_FOUND;
+        }
 
 	fcgi_request_t *fr = NULL;
 	int ret;
