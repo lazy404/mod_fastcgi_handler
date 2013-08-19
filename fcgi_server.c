@@ -137,6 +137,16 @@ int fcgi_server_send_params_record(fcgi_request_t *fr, uint16_t request_id,
 	/* add all environment variables to r->subprocess_env */
 	ap_add_common_vars(fr->r);
 	ap_add_cgi_vars(fr->r);
+	
+    /* Add the HTTP authorization header to the environment */
+    const char* auth_header_name = "Authorization";
+    const char* cgi_auth_header_name = "HTTP_AUTHORIZATION";
+    const char* auth_header = apr_table_get(fr->r->headers_in, auth_header_name);
+
+    if(auth_header)
+    {
+        apr_table_setn(fr->r->subprocess_env, cgi_auth_header_name, auth_header);
+    }
 
 	/* build FCGI_PARAMS record based on apache environement */
 	apr_pool_t *p = fr->r->pool;
